@@ -5,9 +5,9 @@ package com.kuvshinov.graph.core;
  */
 public class Edge<T, E> {
 
-    private Node<T> first;
+    private Node first;
 
-    private Node<T> second;
+    private Node second;
 
     private E relationType;
 
@@ -15,11 +15,11 @@ public class Edge<T, E> {
         this(null, null, null);
     }
 
-    public Edge(Node<T> first, Node<T> second) {
+    public Edge(Node first, Node second) {
         this(first, second, null);
     }
 
-    public Edge(Node<T> first, Node<T> second, E relationType) {
+    public Edge(Node first, Node second, E relationType) {
         this.first = first;
         this.second = second;
         this.relationType = relationType;

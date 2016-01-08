@@ -3,24 +3,10 @@ package com.kuvshinov.graph.core;
 /**
  * @author Sergey Kuvshinov
  */
-public class Node<T> {
+public abstract class Node {
 
-    private T obj;
+    protected String nodeId;
 
-    public Node() {
-        this(null);
-    }
-
-    public Node(T obj) {
-        this.obj = obj;
-    }
-
-    public T getObject() {
-        return this.obj;
-    }
-
-    public void setObj(T obj) {
-        this.obj = obj;
-    }
+    protected String nodeName;
 
 }
