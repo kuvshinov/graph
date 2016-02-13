@@ -20,24 +20,23 @@ import java.util.UUID;
 /**
  * @author Sergey Kuvshinov
  */
-public class Server extends Thread {
+public class Server {
 
     private static final Logger log = LogManager.getLogger(Server.class);
 
-    private static final int B_SIZE = 256 * 1024;
+    private static final int RCVBUF_SIZE = 256 * 1024;
 
-    private InetSocketAddress hostAddress;
+    private InetSocketAddress socketAddress;
 
     private Map<String, SocketChannel> clients = new HashMap<>();
 
     private void initProperties() throws IOException {
         PropertyReader properties = new PropertyReader("conf.properties");
-        String host = properties.getProperty("host");
         int port = properties.getPropertyAsInt("port");
-        hostAddress = new InetSocketAddress(host, port);
+        socketAddress = new InetSocketAddress("127.0.0.1", port);
     }
 
-    private void accept(SelectionKey key) throws IOException {
+    private void accept(SelectionKey key, Selector selector) throws IOException {
         ServerSocketChannel serverChannel = (ServerSocketChannel) key.channel();
         SocketChannel socketChannel = serverChannel.accept();
         socketChannel.configureBlocking(false);
@@ -45,14 +44,16 @@ public class Server extends Thread {
         log.info("Create connection for {} with ID = {}", socketChannel.getRemoteAddress(), uuid);
 
         clients.put(uuid, socketChannel);
+
+        socketChannel.register(selector, SelectionKey.OP_READ);
     }
 
-    private void read() {
-        throw new UnsupportedOperationException();
+    private void read(SelectionKey key) {
+        SocketChannel socketChannel = (SocketChannel) key.channel();
+
     }
 
-    @Override
-    public void run() {
+    public void start() {
         try {
             initProperties();
         } catch (IOException e) {
@@ -66,13 +67,13 @@ public class Server extends Thread {
 
             if (serverChannel.isOpen() && selector.isOpen()) {
                 serverChannel.configureBlocking(false);
-                serverChannel.setOption(StandardSocketOptions.SO_RCVBUF, B_SIZE);
+                serverChannel.setOption(StandardSocketOptions.SO_RCVBUF, RCVBUF_SIZE);
                 serverChannel.setOption(StandardSocketOptions.SO_REUSEADDR, true);
 
-                serverChannel.bind(hostAddress);
+                serverChannel.bind(socketAddress);
                 serverChannel.register(selector, SelectionKey.OP_ACCEPT);
 
-                log.info("Server was started.");
+                log.info("Server was started on {}:{}", socketAddress.getHostString(), socketAddress.getPort());
 
                 while (true) {
                     selector.select();
@@ -88,7 +89,9 @@ public class Server extends Thread {
                         }
 
                         if (key.isAcceptable()) {
-                            accept(key);
+                            accept(key, selector);
+                        } else if (key.isReadable()) {
+                            read(key);
                         }
                     }
                 }
@@ -102,4 +105,8 @@ public class Server extends Thread {
 
     }
 
+    public static void main(String[] args) {
+        Server server = new Server();
+        server.start();
+    }
 }
