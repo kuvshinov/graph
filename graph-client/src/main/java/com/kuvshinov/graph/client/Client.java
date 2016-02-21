@@ -1,7 +1,10 @@
 package com.kuvshinov.graph.client;
 
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
 /**
@@ -13,17 +16,29 @@ public class Client {
 
     private int port;
 
+    private Reader reader;
+
     public Client(String host, int port) {
         this.host = host;
         this.port = port;
+        this.reader = new InputStreamReader(System.in);
     }
 
     public Client(String host, String port) {
         this(host, Integer.parseInt(port));
     }
 
+    private byte[] readStatement() throws IOException {
+        char ch;
+        String result = "";
+        while ((ch = (char) reader.read()) != ';') {
+            result += ch;
+        }
+        return result.getBytes();
+    }
+
     public void start() {
-        boolean isStart = true;
+
         try(SocketChannel socketChannel = SocketChannel.open()) {
 
             if (socketChannel.isOpen()) {
@@ -33,11 +48,12 @@ public class Client {
                 if (socketChannel.isConnected()) {
                     System.out.println("Connected");
 
-                    while(isStart) {
+                    while(true) {
+                        ByteBuffer statement = ByteBuffer.wrap(readStatement());
+                        socketChannel.write(statement);
 
                     }
 
-                    socketChannel.close();
                 }
             } else {
                 System.out.println("Cannot open socket");
