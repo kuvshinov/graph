@@ -1,9 +1,11 @@
-package com.kuvshinov.graph.core;
+package com.kuvshinov.graph.core.storage;
+
+import com.kuvshinov.graph.core.graph.node.Node;
 
 /**
  * @author Sergey Kuvshinov
  */
-public class Edge<T, E> {
+public class Edge<E> {
 
     private Node first;
 
